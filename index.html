@@ -244,7 +244,7 @@
     cursor:pointer;
     border:1px solid rgba(11,13,15,0.08);
   }
-  .vtile video{width:100%; height:100%; object-fit:cover; display:block; background:#000;}
+  .vtile video{width:100%; height:100%; object-fit:cover; display:block; background:transparent;}
   .vtile .ph{
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -252,7 +252,6 @@
     color:var(--paper);
     transition:opacity .25s ease;
   }
-  /* ВОТ ПРАВКА: пока видео играет — оверлей с красной кнопкой скрыт и не ловит клики */
   .vtile.playing .ph{opacity:0; pointer-events:none;}
   .vtile .play{
     width:38px; height:38px; border-radius:50%;
@@ -490,21 +489,20 @@
   payInput.addEventListener('input', recalc);
 
   // ---- VIDEO TILES ----
-  // Replace `src` with real file paths (or hosted URLs) and `poster` with a thumbnail image.
   const CASES = {
     "grid-quince": [
-      { src: "videos/repo1.mp4", poster: "" },
-      { src: "videos/repo2.mp4", poster: "" },
-      { src: "videos/repo3.mp4", poster: "" },
-      { src: "videos/repo4.mp4", poster: "" },
-      { src: "videos/repo5.mp4", poster: "" },
+      { src: "videos/repo1.mp4" },
+      { src: "videos/repo2.mp4" },
+      { src: "videos/repo3.mp4" },
+      { src: "videos/repo4.mp4" },
+      { src: "videos/repo5.mp4" },
     ],
     "grid-shoptime": [
-      { src: "videos/repo6.mp4", poster: "" },
-      { src: "videos/repo7.mp4", poster: "" },
-      { src: "videos/repo8.mp4", poster: "" },
-      { src: "videos/repo9.mp4", poster: "" },
-      { src: "videos/repo10.mp4", poster: "" },
+      { src: "videos/repo6.mp4" },
+      { src: "videos/repo7.mp4" },
+      { src: "videos/repo8.mp4" },
+      { src: "videos/repo9.mp4" },
+      { src: "videos/repo10.mp4" },
     ]
   };
 
@@ -518,21 +516,28 @@
           <div class="play"></div>
           <span class="idx">v${String(i+1).padStart(2,'0')}</span>
         </div>
-        <video preload="none" playsinline ${item.poster ? `poster="${item.poster}"` : ''}></video>
+        <video preload="metadata" playsinline muted></video>
       `;
       const video = tile.querySelector('video');
+      video.src = item.src;
 
-      // ВОТ ПРАВКА: оверлей скрывается, пока видео играет, и возвращается на паузе/в конце
-      video.addEventListener('play',  () => tile.classList.add('playing'));
+      // превью: показываем кадр из видео вместо чёрного экрана
+      video.addEventListener('loadedmetadata', () => {
+        video.currentTime = 0.5;
+      }, { once:true });
+
+      video.addEventListener('play', () => {
+        video.muted = false;
+        tile.classList.add('playing');
+      });
       video.addEventListener('pause', () => tile.classList.remove('playing'));
       video.addEventListener('ended', () => tile.classList.remove('playing'));
 
       tile.addEventListener('click', () => {
-        // во время воспроизведения клики обрабатывают нативные контролы видео
         if (tile.classList.contains('playing')) return;
-        if (!video.src) video.src = item.src;
         video.controls = true;
-        video.play().catch(() => { /* file not found until you add real src */ });
+        video.currentTime = 0;
+        video.play().catch(() => {});
       });
 
       grid.appendChild(tile);
@@ -542,3 +547,4 @@
 
 </body>
 </html>
+
