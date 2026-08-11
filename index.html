@@ -250,7 +250,10 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:8px;
     color:var(--paper);
+    transition:opacity .25s ease;
   }
+  /* ВОТ ПРАВКА: пока видео играет — оверлей с красной кнопкой скрыт и не ловит клики */
+  .vtile.playing .ph{opacity:0; pointer-events:none;}
   .vtile .play{
     width:38px; height:38px; border-radius:50%;
     background:var(--orange);
@@ -381,7 +384,7 @@
 
     <div class="case-block">
       <div class="case-meta">
-        <h3>Квинс · Ресторан </h3>
+        <h3>Квинс · Ресторан, Новосибирск</h3>
         <span class="status live">Есть результат за месяц</span>
       </div>
 
@@ -495,7 +498,6 @@
       { src: "videos/repo3.mp4", poster: "" },
       { src: "videos/repo4.mp4", poster: "" },
       { src: "videos/repo5.mp4", poster: "" },
-
     ],
     "grid-shoptime": [
       { src: "videos/repo6.mp4", poster: "" },
@@ -519,15 +521,20 @@
         <video preload="none" playsinline ${item.poster ? `poster="${item.poster}"` : ''}></video>
       `;
       const video = tile.querySelector('video');
+
+      // ВОТ ПРАВКА: оверлей скрывается, пока видео играет, и возвращается на паузе/в конце
+      video.addEventListener('play',  () => tile.classList.add('playing'));
+      video.addEventListener('pause', () => tile.classList.remove('playing'));
+      video.addEventListener('ended', () => tile.classList.remove('playing'));
+
       tile.addEventListener('click', () => {
+        // во время воспроизведения клики обрабатывают нативные контролы видео
+        if (tile.classList.contains('playing')) return;
         if (!video.src) video.src = item.src;
-        if (video.paused) {
-          video.controls = true;
-          video.play().catch(()=>{ /* file not found until you add real src */ });
-        } else {
-          video.pause();
-        }
+        video.controls = true;
+        video.play().catch(() => { /* file not found until you add real src */ });
       });
+
       grid.appendChild(tile);
     });
   });
