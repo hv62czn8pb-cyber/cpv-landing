@@ -506,6 +506,8 @@
     ]
   };
 
+  const allVideos = []; // все плееры на странице, чтобы играть могло только одно видео
+
   Object.entries(CASES).forEach(([gridId, items]) => {
     const grid = document.getElementById(gridId);
     items.forEach((item, i) => {
@@ -520,6 +522,7 @@
       `;
       const video = tile.querySelector('video');
       video.src = item.src;
+      allVideos.push(video);
 
       // превью: показываем кадр из видео вместо чёрного экрана
       video.addEventListener('loadedmetadata', () => {
@@ -527,6 +530,8 @@
       }, { once:true });
 
       video.addEventListener('play', () => {
+        // включилось это видео — все остальные ставим на паузу
+        allVideos.forEach(v => { if (v !== video) v.pause(); });
         video.muted = false;
         tile.classList.add('playing');
       });
@@ -547,4 +552,3 @@
 
 </body>
 </html>
-
